@@ -1,10 +1,10 @@
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 import request from 'supertest';
 import express, { Application } from 'express';
-import { aiRouter } from '../../../routes/ai';
-import { aiService } from '../../../services/aiService';
-import { StockPrediction, InventoryAnalytics, CategorySuggestion } from '../../../services/aiService';
-import { errorHandler } from '../../../middleware/errorHandler';
+import { aiRouter } from '../routes/ai';
+import { aiService } from '../services/aiService';
+import { StockPrediction, InventoryAnalytics, CategorySuggestion } from '../services/aiService';
+import { errorHandler } from '../middleware/errorHandler';
 
 // Create test app
 const app: Application = express();
@@ -13,7 +13,7 @@ app.use('/ai', aiRouter);
 app.use(errorHandler);
 
 // Mock the aiService module
-jest.mock('../../../services/aiService', () => ({
+jest.mock('../services/aiService', () => ({
   aiService: {
     predictLowStock: jest.fn().mockImplementation(async () => ({})),
     getInventoryAnalytics: jest.fn().mockImplementation(async () => ({})),
@@ -30,7 +30,7 @@ describe('AI API Integration Tests', () => {
     jest.clearAllMocks();
   });
 
-  describe('POST /ai/predict-low-stock/:productId', () => {
+  describe('GET /ai/predictions/low-stock/:productId', () => {
     const mockPrediction: StockPrediction = {
       productId: 1,
       currentStock: 50,
@@ -44,16 +44,16 @@ describe('AI API Integration Tests', () => {
       (aiService.predictLowStock as any).mockResolvedValue(mockPrediction);
 
       const response = await request(app)
-        .post('/ai/predict-low-stock/1')
+        .get('/ai/predictions/low-stock/1')
         .expect(200);
 
-      expect(response.body).toEqual(mockPrediction);
+      expect(response.body.data).toEqual(mockPrediction);
       expect(aiService.predictLowStock).toHaveBeenCalledWith(1, expect.any(String));
     });
 
     it('should handle invalid product ID', async () => {
       await request(app)
-        .post('/ai/predict-low-stock/invalid')
+        .get('/ai/predictions/low-stock/invalid')
         .expect(400);
     });
 
@@ -61,12 +61,12 @@ describe('AI API Integration Tests', () => {
       (aiService.predictLowStock as any).mockRejectedValue(new Error('Service error'));
 
       await request(app)
-        .post('/ai/predict-low-stock/1')
+        .get('/ai/predictions/low-stock/1')
         .expect(500);
     });
   });
 
-  describe('GET /ai/inventory-analytics', () => {
+  describe('GET /ai/analytics/inventory-trends', () => {
     const mockAnalytics: InventoryAnalytics = {
       trends: [],
       summary: {
@@ -87,10 +87,10 @@ describe('AI API Integration Tests', () => {
       (aiService.getInventoryAnalytics as any).mockResolvedValue(mockAnalytics);
 
       const response = await request(app)
-        .get('/ai/inventory-analytics')
+        .get('/ai/analytics/inventory-trends')
         .expect(200);
 
-      expect(response.body).toEqual(mockAnalytics);
+      expect(response.body.data).toEqual(mockAnalytics);
       expect(aiService.getInventoryAnalytics).toHaveBeenCalledWith(expect.any(String), expect.any(Number));
     });
 
@@ -98,12 +98,12 @@ describe('AI API Integration Tests', () => {
       (aiService.getInventoryAnalytics as any).mockRejectedValue(new Error('Service error'));
 
       await request(app)
-        .get('/ai/inventory-analytics')
+        .get('/ai/analytics/inventory-trends')
         .expect(500);
     });
   });
 
-  describe('POST /ai/suggest-category', () => {
+  describe('POST /ai/categorize', () => {
     const mockSuggestion: CategorySuggestion = {
       category: 'Electronics',
       confidence: 0.92,
@@ -119,17 +119,17 @@ describe('AI API Integration Tests', () => {
       };
 
       const response = await request(app)
-        .post('/ai/suggest-category')
+        .post('/ai/categorize')
         .send(productData)
         .expect(200);
 
-      expect(response.body).toEqual(mockSuggestion);
+      expect(response.body.data).toEqual(mockSuggestion);
       expect(aiService.suggestCategory).toHaveBeenCalledWith(productData.name, productData.description);
     });
 
     it('should handle missing product data', async () => {
       await request(app)
-        .post('/ai/suggest-category')
+        .post('/ai/categorize')
         .send({})
         .expect(400);
     });
@@ -138,29 +138,12 @@ describe('AI API Integration Tests', () => {
       (aiService.suggestCategory as any).mockRejectedValue(new Error('Service error'));
 
       await request(app)
-        .post('/ai/suggest-category')
+        .post('/ai/categorize')
         .send({ name: 'Test', description: 'Test' })
         .expect(500);
     });
   });
 });
-
-// Mock authentication middleware
-jest.mock('../../../middleware/validation', () => ({
-  authenticateSeller: (req: any, res: any, next: any) => {
-    req.user = { seller_id: 'test-seller' };
-    next();
-  }
-}));
-
-// Mock AI service
-jest.mock('../../../services/aiService', () => ({
-  aiService: {
-    predictLowStock: jest.fn(),
-    getInventoryAnalytics: jest.fn(),
-    suggestCategory: jest.fn()
-  }
-}));
 
 describe('AI Routes Integration Tests', () => {
   describe('GET /ai/predictions/low-stock/:productId', () => {

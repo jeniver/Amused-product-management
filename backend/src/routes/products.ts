@@ -194,8 +194,8 @@ productsRouter.put('/:id', validateBody(updateProductSchema), async (req, res, n
 // DELETE /products/:id - Delete product
 // Authorization: Only allows deleting products owned by the authenticated seller
 productsRouter.delete('/:id', async (req, res, next) => {
+  const client = await pool.connect();
   try {
-    // Extract sellerId from authenticated user context
     const sellerId = req.user!.seller_id;
     const id = parseInt(req.params.id, 10);
 
@@ -203,16 +203,26 @@ productsRouter.delete('/:id', async (req, res, next) => {
       throw new AppError('Invalid product ID', 400);
     }
 
-    // Delete query includes seller_id check to ensure ownership
-    const { rows } = await pool.query(
+    await client.query('BEGIN');
+
+    // Delete related events first
+    await client.query('DELETE FROM events WHERE product_id = $1', [id]);
+    // Optionally, also delete from sales_history and ai_recommendations for full integrity:
+    await client.query('DELETE FROM sales_history WHERE product_id = $1', [id]);
+    await client.query('DELETE FROM ai_recommendations WHERE product_id = $1', [id]);
+
+    // Now delete the product
+    const { rows } = await client.query(
       'DELETE FROM products WHERE id = $1 AND seller_id = $2 RETURNING *',
       [id, sellerId]
     );
 
-    // If no rows affected, product either doesn't exist or doesn't belong to seller
     if (rows.length === 0) {
+      await client.query('ROLLBACK');
       throw new AppError('Product not found or access denied', 404);
     }
+
+    await client.query('COMMIT');
 
     await emitEvent('ProductDeleted', sellerId, rows[0].id, { productId: rows[0].id });
 
@@ -223,6 +233,9 @@ productsRouter.delete('/:id', async (req, res, next) => {
 
     res.status(200).json(response);
   } catch (error) {
+    await client.query('ROLLBACK');
     next(error);
+  } finally {
+    client.release();
   }
 });
