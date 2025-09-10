@@ -46,7 +46,7 @@ export async function startServer() {
       logger.info(`📡 Events API: http://localhost:${config.PORT}/events`);
       resolve();
     });
-
+    
     // Configure SSE-specific settings
     server.setTimeout(0);
     server.keepAliveTimeout = 0;

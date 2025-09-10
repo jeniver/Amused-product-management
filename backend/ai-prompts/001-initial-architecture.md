@@ -5,7 +5,6 @@
 **Type**: Spec-Driven Development
 
 ## Prompt
-
 ```
 I need to design a production-ready Node.js backend for an e-commerce product management system with real-time notifications. The system should handle:
 

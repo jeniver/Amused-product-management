@@ -127,14 +127,32 @@ export const useProducts = () => {
   const handleDelete = useCallback(async (id: number) => {
     try {
       setIsDeleting(true);
-      await apiService.deleteProduct(id);
-      console.log('Deleted product with id:', id);
+      const response = await apiService.deleteProduct(id);
       
-      // Refresh the products list to get the latest data from the server
-      await loadProducts();
-      
-      showToast('Product deleted successfully!', 'success');
-      return { success: true };
+      if (response.success) {
+        // Optimistically update the UI
+        setProducts(prev => prev.filter(product => product.id !== id));
+        
+        // Update statistics immediately
+        const updatedStats = { ...statistics };
+        const deletedProduct = products.find(p => p.id === id);
+        if (deletedProduct) {
+          updatedStats.total--;
+          if (deletedProduct.quantity === 0) updatedStats.outOfStock--;
+          else if (deletedProduct.quantity <= config.LOW_STOCK_THRESHOLD) updatedStats.lowStock--;
+          else updatedStats.inStock--;
+        }
+        
+        // Show success message
+        showToast('Product deleted successfully!', 'success');
+        
+        // Refresh the data in background
+        loadProducts().catch(console.error);
+        
+        return { success: true };
+      } else {
+        throw new Error(response.message || 'Failed to delete product');
+      }
     } catch (error) {
       const errorMessage = handleError(error, {
         showNotification: false,
@@ -145,7 +163,7 @@ export const useProducts = () => {
     } finally {
       setIsDeleting(false);
     }
-  }, [handleError, showToast, loadProducts]);
+  }, [handleError, showToast, loadProducts, products, statistics]);
 
   // Pagination functions
   const goToPage = useCallback((page: number) => {

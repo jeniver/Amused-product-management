@@ -108,16 +108,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
           </button>
         </div>
       </div>
-
-      {/* Connection Status */}
-      <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
-        <div className="flex items-center space-x-2 text-sm">
-          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`} />
-          <span className={isConnected ? 'text-green-600' : 'text-red-600'}>
-            {isConnected ? 'Connected to real-time updates' : 'Disconnected from real-time updates'}
-          </span>
-        </div>
-      </div>
+     
 
       {/* Filters */}
       <div className="p-4 border-b border-gray-200">

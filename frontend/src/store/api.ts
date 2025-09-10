@@ -6,7 +6,6 @@ import {
   ProductsQueryParams,
   ProductsResponse,
   AIRecommendation,
-  StockPrediction,
   CategorySuggestion,
   InventoryAnalyticsResponse,
   AIHealthStatus
@@ -103,11 +102,6 @@ export const productsApi = createApi({
       providesTags: ['AIRecommendation'],
     }),
 
-    // Get stock predictions for a product
-    getStockPredictions: builder.query<StockPrediction, number>({
-      query: (productId) => `/ai/predictions/low-stock/${productId}`,
-      providesTags: ['StockPrediction'],
-    }),
 
     // Auto-categorize a product
     categorizeProduct: builder.mutation<CategorySuggestion, { name: string; description?: string }>({
@@ -141,7 +135,6 @@ export const {
   useUpdateProductMutation,
   useDeleteProductMutation,
   useGetAIRecommendationsQuery,
-  useGetStockPredictionsQuery,
   useCategorizeProductMutation,
   useGetInventoryTrendsQuery,
   useGetAIHealthQuery,

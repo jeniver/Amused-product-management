@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Product, CreateProductRequest, UpdateProductRequest } from '../types';
 import { useAI } from '../hooks/useAI';
+import { useOpenAI } from '../hooks/useOpenAI';
 import Input from './common/Input';
 import Select from './common/Select';
 import Button from './common/Button';
@@ -31,6 +32,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   loading = false,
 }) => {
   const { handleCategorizeProduct, isCategorizing } = useAI();
+  const { generateDescription, isLoading: isGeneratingDescription } = useOpenAI();
   const [formData, setFormData] = useState({
     name: '',
     price: '',
@@ -208,9 +210,39 @@ const ProductForm: React.FC<ProductFormProps> = ({
           className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           placeholder="Enter product description (optional)"
         />
+        <div className="mt-2">
+          <Button
+            type="button"
+            size="small"
+            variant="secondary"
+            onClick={async () => {
+              if (!formData.name.trim() || !formData.category) return;
+              const description = await generateDescription(formData.name, formData.category);
+              if (description) {
+                setFormData(prev => ({
+                  ...prev,
+                  description: description
+                }));
+                // Force the textarea to update
+                const textarea = document.getElementById('description') as HTMLTextAreaElement;
+                if (textarea) {
+                  textarea.value = description;
+                }
+              }
+            }}
+            disabled={!formData.name.trim() || !formData.category || isGeneratingDescription}
+            loading={isGeneratingDescription}
+          >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            {isGeneratingDescription ? 'Generating...' : 'AI Generate Description'}
+          </Button>
+        </div>
       </div>
 
-      <div className="flex justify-end space-x-3 pt-4">
+
+    <div className="flex justify-end space-x-3 pt-4">
         <Button
           type="button"
           variant="secondary"

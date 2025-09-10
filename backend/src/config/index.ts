@@ -26,6 +26,15 @@ export const config = {
   
   // Logging
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
+
+  // OpenAI Configuration
+  AI: {
+    enabled: !!process.env.OPENAI_API_KEY,
+    apiKey: process.env.OPENAI_API_KEY,
+    model: process.env.OPENAI_MODEL || 'gpt-3.5-turbo',
+    timeout: parseInt(process.env.OPENAI_TIMEOUT || '10000', 10),
+    maxRetries: parseInt(process.env.OPENAI_MAX_RETRIES || '3', 10)
+  }
 };
 
 export const isDevelopment = config.NODE_ENV === 'development';

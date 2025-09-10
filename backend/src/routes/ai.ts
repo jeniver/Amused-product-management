@@ -81,3 +81,51 @@ aiRouter.post('/categorize', async (req, res, next) => {
     next(error);
   }
 });
+
+// POST /ai/generate-description - Generate product description
+aiRouter.post('/generate-description', async (req, res, next) => {
+  try {
+    const { productName, category } = req.body;
+
+    if (!productName || !category) {
+      throw new AppError('Product name and category are required', 400);
+    }
+
+    const description = await aiService.generateProductDescription(productName, category);
+
+    const response: ApiResponse = {
+      success: true,
+      data: { description },
+      message: 'Product description generated successfully'
+    };
+
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+// GET /ai/recommendations/:productId - Get product recommendations
+aiRouter.get('/recommendations/:productId', async (req, res, next) => {
+  try {
+    const productId = parseInt(req.params.productId);
+    const sellerId = req.user!.seller_id;
+
+    if (isNaN(productId)) {
+      throw new AppError('Invalid product ID', 400);
+    }
+
+    const recommendations = await aiService.getProductRecommendations(productId, sellerId);
+
+    const response: ApiResponse = {
+      success: true,
+      data: recommendations,
+      message: 'Product recommendations generated successfully'
+    };
+
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+});

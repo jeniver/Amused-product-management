@@ -55,13 +55,23 @@ const ProductsDashboard: React.FC = () => {
     if (!deleteProduct) return;
 
     setIsDeletingProduct(true);
-    const result = await handleDelete(deleteProduct.id);
-    setIsDeletingProduct(false);
-
-    if (result.success) {
-      setDeleteProduct(null);
+    try {
+      const result = await handleDelete(deleteProduct.id);
+      if (result.success) {
+        setDeleteProduct(null);
+        
+        // Force refresh the inventory analytics if we're on that tab
+        if (activeTab === 'analytics') {
+          const analyticsComponent = document.querySelector('#inventory-analytics');
+          if (analyticsComponent) {
+            // Trigger a refresh of the analytics
+            analyticsComponent.dispatchEvent(new Event('refresh'));
+          }
+        }
+      }
+    } finally {
+      setIsDeletingProduct(false);
     }
-    // Error handling is now done in the hook with notifications
   };
 
   const handleDeleteCancel = () => {

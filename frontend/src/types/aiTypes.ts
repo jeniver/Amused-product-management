@@ -1,9 +1,39 @@
+export interface AIAnalysisRequest {
+  text?: string;
+  productName?: string;
+  productId?: number;
+  category?: string;
+  prompt?: string;
+}
+
+export interface ProductDescriptionResponse {
+  success: boolean;
+  data: {
+    description: string;
+  };
+  message?: string;
+}
+
+export interface AIAnalysisResponse {
+  success: boolean;
+  data: {
+    analysis?: string | null;
+    description?: string | null;
+    confidence?: number;
+    suggestions?: string[] | null;
+    keywords?: string[] | null;
+  };
+  message?: string;
+}
+
 export interface RecommendationItem {
   id: number;
   name: string;
   similarity: number;
   category?: string;
   price?: number;
+  aiInsights?: string;
+  confidence: number;
 }
 
 export interface StockPrediction {

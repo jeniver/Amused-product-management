@@ -2,7 +2,6 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../store';
 import { setConnectionStatus, handleSSEEvent } from '../store/slices/notificationsSlice';
-import { SSEEvent } from '../types';
 import { config } from '../config';
 import { useErrorHandler } from './useErrorHandler';
 import apiService from '../services/apiService';

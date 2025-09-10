@@ -3,6 +3,7 @@ import { Product, TableColumn } from '../types';
 import Table from './common/Table';
 import Button from './common/Button';
 import Pagination from './common/Pagination';
+import ProductRecommendations from './ProductRecommendations';
 
 interface ProductsTableProps {
   products: Product[];
@@ -180,11 +181,15 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
 
   return (
     <div className="bg-white rounded-lg shadow">
+      {selectedProduct && (
+        <ProductRecommendations productId={selectedProduct.id} />
+      )}
       <Table
         data={products}
         columns={columns}
         loading={loading}
         emptyMessage="No products found. Click 'Add Product' to get started."
+        onRowClick={onSelect ? (product) => onSelect(product) : undefined}
       />
       {onPageChange && onPreviousPage && onNextPage && (
         <Pagination

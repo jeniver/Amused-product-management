@@ -27,25 +27,7 @@ export const useAI = () => {
     return { data, isLoading, error };
   };
 
-  // Get stock predictions for a product
-  const useStockPredictions = (productId?: number) => {
-    const [data, setData] = useState<any>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<Error | null>(null);
 
-    useEffect(() => {
-      if (productId) {
-        setIsLoading(true);
-        setError(null);
-        apiService.getStockPredictions(productId)
-          .then(setData)
-          .catch(err => setError(err))
-          .finally(() => setIsLoading(false));
-      }
-    }, [productId]);
-
-    return { data, isLoading, error };
-  };
 
   // Get inventory trends
   const useInventoryTrends = (days?: number) => {
@@ -73,24 +55,6 @@ export const useAI = () => {
     return { data, isLoading, error, refetch: fetchData };
   };
 
-  // Get AI health status
-  const useAIHealth = () => {
-    const [data, setData] = useState<any>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<Error | null>(null);
-
-    useEffect(() => {
-      setIsLoading(true);
-      setError(null);
-      apiService.getAIHealth()
-        .then(setData)
-        .catch(err => setError(err))
-        .finally(() => setIsLoading(false));
-    }, []);
-
-    return { data, isLoading, error };
-  };
-
   // Auto-categorize a product
   const handleCategorizeProduct = useCallback(async (productData: { name: string; description?: string }) => {
     try {
@@ -111,10 +75,7 @@ export const useAI = () => {
   return {
     // Hooks
     useRecommendations,
-    useStockPredictions,
-    useInventoryTrends,
-    useAIHealth,
-    
+    useInventoryTrends, 
     // Actions
     handleCategorizeProduct,
     

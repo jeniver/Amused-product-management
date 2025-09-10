@@ -8,9 +8,9 @@ import type {
   InventoryAnalyticsResponse,
   AIHealthStatus,
   AIRecommendation,
-  StockPrediction,
   CategorySuggestion
 } from '../types';
+import type { AIAnalysisRequest, AIAnalysisResponse } from '../types/aiTypes';
 
 class ApiService {
   private baseURL: string;
@@ -214,14 +214,22 @@ class ApiService {
     }
   }
 
-  async deleteProduct(id: number): Promise<void> {
+  async deleteProduct(id: number): Promise<{ success: boolean; message?: string }> {
     try {
-      return await this.request<void>(`/products/${id}`, {
+      const response = await this.request<{ success: boolean; message: string }>(`/products/${id}`, {
         method: 'DELETE',
       });
+      
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to delete product');
+      }
+      
+      return response;
     } catch (error) {
-      console.warn('API not available, simulating product deletion');
-      return Promise.resolve();
+      if (error instanceof Error) {
+        throw new Error(`Failed to delete product: ${error.message}`);
+      }
+      throw new Error('Failed to delete product');
     }
   }
 
@@ -241,31 +249,12 @@ class ApiService {
           price: 29.99,
           category: 'electronics',
           reason: 'Similar category and price range',
-          confidence: 0.85
+          similarity: 0.85
         }
       ];
     }
   }
 
-  async getStockPredictions(productId: number): Promise<StockPrediction> {
-    try {
-      const response = await this.request<{ success: boolean; data: StockPrediction }>(`/ai/predictions/low-stock/${productId}`);
-      if (response.success && response.data) {
-        return response.data;
-      }
-      throw new Error('Invalid response format');
-    } catch (error) {
-      console.warn('Stock predictions not available, returning mock data');
-      return {
-        product_id: productId,
-        predicted_stock_out_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        days_until_stock_out: 30,
-        recommended_reorder_quantity: 50,
-        confidence: 0.8,
-        sales_velocity: 2.5
-      };
-    }
-  }
 
   async categorizeProduct(data: { name: string; description?: string }): Promise<CategorySuggestion> {
     try {
@@ -406,6 +395,80 @@ class ApiService {
       } catch {
         return false;
       }
+    }
+  }
+
+  // AI-specific endpoints
+  async analyzeWithAI(data: AIAnalysisRequest): Promise<AIAnalysisResponse> {
+    try {
+      const response = await this.request<AIAnalysisResponse>('/ai/analyze', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      return response;
+    } catch (error) {
+      console.warn('AI analysis not available', error);
+      return {
+        success: false,
+        data: {
+          analysis: 'AI analysis currently unavailable',
+          confidence: 0
+        }
+      };
+    }
+  }
+
+  async generateProductDescription(data: AIAnalysisRequest): Promise<AIAnalysisResponse> {
+    try {
+      const response = await this.request<AIAnalysisResponse>('/ai/generate-description', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      return response;
+    } catch (error) {
+      console.warn('AI description generation not available', error);
+      return {
+        success: false,
+        data: {
+          analysis: 'Description generation currently unavailable',
+          confidence: 0
+        }
+      };
+    }
+  }
+
+  async getAIStockPrediction(productId: number): Promise<AIAnalysisResponse> {
+    try {
+      const response = await this.request<AIAnalysisResponse>(`/ai/predictions/detailed/${productId}`);
+      return response;
+    } catch (error) {
+      console.warn('AI stock prediction not available', error);
+      return {
+        success: false,
+        data: {
+          analysis: 'Stock prediction currently unavailable',
+          confidence: 0
+        }
+      };
+    }
+  }
+
+  async getAIMarketInsights(data: AIAnalysisRequest): Promise<AIAnalysisResponse> {
+    try {
+      const response = await this.request<AIAnalysisResponse>('/ai/market-insights', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      return response;
+    } catch (error) {
+      console.warn('AI market insights not available', error);
+      return {
+        success: false,
+        data: {
+          analysis: 'Market insights currently unavailable',
+          confidence: 0
+        }
+      };
     }
   }
 }

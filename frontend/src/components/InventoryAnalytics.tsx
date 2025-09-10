@@ -21,27 +21,32 @@ const InventoryAnalyticsComponent: React.FC = () => {
 
 
 
-  useEffect(() => {
-    const fetchAnalytics = async () => {
-      try {
-        setLoading(true);
-        const response = await apiService.getInventoryTrends(30);
-        
-        if (response.success) {
-          setAnalytics(response.data);
-        } else {
-          throw new Error(response.message || 'Failed to load analytics');
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load analytics');
-        console.error('Analytics fetch error:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+useEffect(() => {
+  let called = false;
 
-    fetchAnalytics();
-  }, []);
+  const fetchAnalytics = async () => {
+    if (called) return; // guard
+    called = true;
+
+    try {
+      setLoading(true);
+      const response = await apiService.getInventoryTrends(30);
+
+      if (response.success) {
+        setAnalytics(response.data);
+      } else {
+        throw new Error(response.message || "Failed to load analytics");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load analytics");
+      console.error("Analytics fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchAnalytics();
+}, []);
 
   if (loading) {
     return (
@@ -70,54 +75,9 @@ const InventoryAnalyticsComponent: React.FC = () => {
     return <div>No analytics data available</div>;
   }
 
-  const summaryCards = [
-    {
-      label: 'Total Products',
-      value: analytics.summary.totalProducts,
-      type: 'number'
-    },
-    {
-      label: 'Low Stock Items',
-      value: analytics.summary.lowStockProducts,
-      type: 'number',
-      alert: true
-    },
-    {
-      label: 'Out of Stock',
-      value: analytics.summary.outOfStockProducts,
-      type: 'number',
-      alert: true
-    },
-    {
-      label: 'Average Stock',
-      value: Math.round(analytics.summary.averageStockLevel),
-      type: 'number'
-    }
-  ];
 
   return (
-    <div className="space-y-8">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {summaryCards.map((card) => (
-          <div
-            key={card.label}
-            className={`bg-white shadow rounded-lg p-6 ${
-              card.alert && card.value > 0 ? 'bg-red-50' : ''
-            }`}
-          >
-            <div className="text-sm text-gray-500">{card.label}</div>
-            <div className="mt-2 flex items-baseline">
-              <div className="text-2xl font-semibold">
-                {card.type === 'number'
-                  ? card.value.toLocaleString()
-                  : card.value}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
+    <div className="space-y-8"> 
       {/* Category Breakdown */}
       <div className="bg-white shadow rounded-lg p-6">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Category Breakdown</h3>

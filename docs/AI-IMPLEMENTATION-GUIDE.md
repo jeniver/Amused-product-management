@@ -7,6 +7,8 @@ Our product management system includes three main AI services:
 1. **Product Recommendations** - Suggest similar/complementary products
 2. **Sales Predictions** - Forecast demand and stock levels
 3. **Auto-Categorization** - Automatically categorize products
+ 
+
 
 ## AI Architecture
 

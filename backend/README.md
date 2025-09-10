@@ -29,7 +29,9 @@ API available at `http://localhost:4000`
 - `DELETE /products/:id` - Delete product
 
 ### AI Services
-- `GET /ai/recommendations/:productId` - Get product recommendations
+- `GET /ai/recommendations/:productId` - Get product 
+
+### Recommendations
 - `GET /ai/predictions/:productId` - Get sales predictions
 - `POST /ai/categorize` - Auto-categorize products
 

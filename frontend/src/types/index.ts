@@ -132,7 +132,7 @@ export interface AIRecommendation {
   price: number;
   category: string;
   reason: string;
-  confidence: number;
+  similarity: number;
 }
 
 export interface StockPrediction {
